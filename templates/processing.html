@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processing</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+        }
+        .loader {
+            border: 6px solid #f3f3f3; /* Light grey */
+            border-top: 6px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        h1 {
+            margin: 10px 0 20px;
+            font-size: 24px;
+            color: #555;
+        }
+    </style>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const filename = '{{ filename }}';
+            const extractTypes = {{ extract_types|tojson }};
+            console.log("Loaded page for filename:", filename);
+            console.log("Extract types:", extractTypes);
+            const interval = setInterval(checkStatus, 300);  // Check every 2 seconds
+        
+            function checkStatus() {
+                console.log("Checking status for:", filename);
+                fetch('/check_status?filename=' + filename)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log("Received data:", data);
+                        let allProcessed = true;
+                        extractTypes.forEach(type => {
+                            const typeKey = type;
+                            console.log(data[typeKey],typeKey)
+                            console.log(`Status for ${type}:`, data[typeKey]);
+                            if (!data[typeKey] || data[typeKey].status === 'Processing' || data[typeKey].status === 'Not started') {
+                                allProcessed = false;
+                            }
+                        });
+        
+                        if (allProcessed) {
+                            console.log("All types processed, navigating to uploaded page.");
+                            clearInterval(interval);
+                            window.location.href = '/uploaded?filename=' + encodeURIComponent(filename);
+                        } else {
+                            console.log("Not all types processed yet, will check again.");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Failed to fetch status:", error);
+                    });
+            }
+        });
+        </script>
+        
+
+
+</head>
+<body>
+    <div class="loader"></div>
+    <h1>Processing your file...</h1>
+</body>
+</html>

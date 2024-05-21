@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Metadata Selection</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .main-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 1200px;
+            padding: 2rem;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 60%;
+            max-width: 800px;
+            margin-right: 2rem;
+        }
+        .note-container {
+            background: #fff3cd;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 30%;
+            max-width: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+        }
+        .note-container h2 {
+            color: #856404;
+            margin-bottom: 1rem;
+            font-size: 20px;
+        }
+        .note-container p {
+            color: #856404;
+            font-size: 1rem;
+            text-align: center;
+            word-break: break-word;
+            line-height: 1.5;
+        }
+        .note-container a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .note-container a:hover {
+            text-decoration: underline;
+        }
+        h1 {
+            color: #007BFF;
+            margin-bottom: 1rem;
+            font-size: 24px;
+        }
+        label {
+            margin: 0.5rem 0;
+            display: block;
+            font-size: 1rem;
+            color: #666;
+        }
+        input[type="checkbox"] {
+            margin-right: 0.5rem;
+        }
+        input[type="file"] {
+            width: 100%;
+            padding: 0.8rem;
+            margin-top: 0.5rem;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            line-height: 1.5;
+            display: block;
+        }
+        input[type="submit"] {
+            background-color: #28a745;
+            color: white;
+            padding: 0.8rem 1.2rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+            margin-top: 1.5rem;
+        }
+        input[type="submit"]:hover {
+            background-color: #218838;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .alert {
+            display: none; /* Hidden by default */
+            position: fixed; /* Use fixed to ensure it's relative to the viewport */
+            top: 20px; /* Top margin */
+            left: 50%; /* Center it horizontally */
+            transform: translateX(-50%); /* Precisely center the element */
+            width: auto;
+            padding: 10px 20px;
+            background-color: #f44336;
+            color: white;
+            text-align: center;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+        .alert.show {
+            display: block;
+        }
+        @media (min-width: 768px) {
+            .container {
+                padding: 2rem 3rem;
+            }
+            h1 {
+                font-size: 26px;
+            }
+            label {
+                font-size: 1.1rem;
+            }
+        }
+        .user-count {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #007bff;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+    </style>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script>
+        function validateCheckboxes() {
+            var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            var checkedOne = Array.prototype.slice.call(checkboxes).some(x => x.checked);
+            var alertBox = document.getElementById('alertBox');
+            if (!checkedOne) {
+                alertBox.classList.add('show');
+                setTimeout(function() { alertBox.classList.remove('show'); }, 3000);
+                return false; // Prevent form submission
+            }
+            return true;
+        }
+        document.addEventListener('DOMContentLoaded', (event) => {
+            var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+            socket.on('user count update', function(data) {
+                document.getElementById('userCount').textContent = "Current users: " + data.count;
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="main-container">
+        <div class="container">
+            <h1>Select Metadata Types to Extract</h1>
+            <form action="/" method="POST" enctype="multipart/form-data" onsubmit="return validateCheckboxes()">
+                <div class="form-group">
+                    <label><input type="checkbox" name="extract_type" value="Locations">Locations</label>
+                    <label><input type="checkbox" name="extract_type" value="Coordinates">Coordinates</label>
+                    <label><input type="checkbox" name="extract_type" value="Author_Title_Keywords_Doi">Authors, title, keywords, doi</label>
+                    <label><input type="checkbox" name="extract_type" value="Abstract">Abstract</label>
+                    <label><input type="checkbox" name="extract_type" value="Figures">Figures</label>
+                    <label><input type="checkbox" name="extract_type" value="Tables">Tables</label>
+                    <!-- Add other metadata types as needed -->
+                </div>
+                <div class="form-group">
+                    <label for="file">Document:</label>
+                    <input type="file" name="file" required>
+                </div>
+                <input type="submit" value="Upload">
+                <div class="alert" id="alertBox">Please select at least one metadata type to extract.</div>
+            </form>
+            <div class="user-count" id="userCount">Current users: 0</div>
+        </div>
+        <div class="note-container">
+            <h2>Versão 1.0.0</h2>
+            <p> Features atuais : 
+            <p>Artigos que testei e funcionam atualmente: 
+                <a href="https://drive.google.com/drive/folders/13qvZuLCGzNqhtFI9fXIQo3wArE43NfA3?usp=sharing" target="_blank">
+                    https://drive.google.com/drive/folders/13qvZuLCGzNqhtFI9fXIQo3wArE43NfA3?usp=sharing
+                </a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Extracted Metadata</title>
+    <style>
+        html, body {
+            height: auto; /* Allows the html and body to expand as needed */
+            overflow-y: auto; /* Ensures scrolling is enabled if content overflows */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* Aligns content to the top */
+            text-align: center;
+        }
+    
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+    
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 600px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        img {
+            max-width: 100%; /* Ensures images do not overflow their container */
+            height: auto;
+            margin-top: 10px;
+        }
+        .figures-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center; /* Centers images within the container */
+        }
+        .figure {
+            margin: 5px;
+            padding: 10px;
+            border: 1px solid #ddd; /* Gives a light border around images */
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            display: inline-block;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #0056b3;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .button-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        {% if message.Locations|length > 0 %}
+            <h2>Locations</h2>
+            <table>                 
+                <tr>
+                    <th>Locations</th>
+                    <th>Mention count in text</th>
+                </tr>
+                {% for location, count in message.Locations.items() %}
+                <tr>
+                    <td>{{ location }}</td>
+                    <td>{{ count }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% endif %}
+
+        {% if message.coordinates|length > 0 %}
+        <h2>Coordinates</h2>
+        <table>
+            <tr>
+                <th>Index</th>
+                <th>Coordinates</th>
+            </tr>
+            {% for coord in message.coordinates %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ coord }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% endif %}
+
+        {% if message.Meta %}
+        <h2>Metadata</h2>
+        <table>
+            <tr>
+                <th>Title</th>
+                <td>{{ message.Meta.Title }}</td>
+            </tr>
+            <tr>
+                <th>Authors</th>
+                <td>{{ message.Meta.Authors}}</td>
+            </tr>
+            <tr>
+                <th>Keywords</th>
+                <td>{{ message.Meta.Keywords | join(', ') }}</td>
+            </tr>
+            <tr>
+                <th>DOI</th>
+                <td>{{ message.Meta.DOI }}</td>
+            </tr>
+        </table>
+        {% endif %}
+        
+
+        {% if message.abstract %}
+        <h2>Abstract</h2>
+        <p>{{ message.abstract }}</p>
+        {% endif %}
+        
+
+        
+        {% if message.Figures %}
+        <h2>Figures</h2>
+        <div class="figures-container">
+            {% for image in message.Figures %}
+            <div class="figure">
+                <img src="{{ url_for('static', filename='extracted_images/' + image) }}" alt="Extracted Image">
+                <p>{{ message.Figures_desc[loop.index0][0] }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if message.Tables %}
+        <h2>Tables</h2>
+        <div class="figures-container">
+            {% for image in message.Tables %}
+            <div class="figure">
+                <img src="{{ url_for('static', filename='tables/' + image) }}" alt="Extracted Image">
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div class="button-container">
+            <a href="/reset-data" class="button">Go Back</a>
+        </div>
+    </div>
+</body>
+</html>
