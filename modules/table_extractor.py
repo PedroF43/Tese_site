@@ -4,29 +4,32 @@ from collections import defaultdict
 import os
 
 def find_table_lines_and_header(pdf_path):
-    pattern = re.compile(r'^Table \d\s*$')
+    pattern = re.compile(r'^Table \d[:]?\s*$|^Table \d[:]?\s*')
     with fitz.open(pdf_path) as doc:
         line_coordinates = []
         table_coordinates = []
 
         for page in doc:
-            drawings = page.get_drawings()
-            blocks = page.get_text("dict")["blocks"]
-            
-            for b in blocks:
-                if b['type'] == 0:
-                    for line in b["lines"]:
-                        for span in line["spans"]:
-                            if pattern.fullmatch(span['text']):
-                                table_coordinates.append([span['text'], span['bbox'][1], page.number])
+            #print(page.number)
+            if page.number!=2:
+                drawings = page.get_drawings()
+                blocks = page.get_text("dict")["blocks"]
+                
+                for b in blocks:
+                    if b['type'] == 0:
+                        for line in b["lines"]:
+                            for span in line["spans"]:
+                                if pattern.fullmatch(span['text']):
+                                    table_coordinates.append([span['text'], span['bbox'][1], page.number])
+                                    #print(table_coordinates)
 
-            for drawing in drawings:
-                for item in drawing['items']:
-                    if item[0] in ('re', 'l'):
-                        line_bbox = fitz.Rect(item[1:5]) if item[0] == 'l' else fitz.Rect(item[1])
-                        line_bbox += (-1, -1, 1, 1)
-                        if 50 < line_bbox[1] < 720 and abs(line_bbox[1] - line_bbox[3]) < 10:
-                            line_coordinates.append([line_bbox, page.number])
+                for drawing in drawings:
+                    for item in drawing['items']:
+                        if item[0] in ('re', 'l'):
+                            line_bbox = fitz.Rect(item[1:5]) if item[0] == 'l' else fitz.Rect(item[1])
+                            line_bbox += (-1, -1, 1, 1)
+                            if 50 < line_bbox[1] < 720 and abs(line_bbox[1] - line_bbox[3]) < 10:
+                                line_coordinates.append([line_bbox, page.number])
         return line_coordinates, table_coordinates
 
 def define_table_values(line_coordinates,table_coordinates):
@@ -67,14 +70,17 @@ def separate_appropriate_lines_into_tables(table_boundaries,lines_by_page):
             for j in range(len(lines_by_page[i])):
                 if group[0]<lines_by_page[i][j][1][0][1]<group[1]:
                     bbox.append(lines_by_page[i][j][1][0])
-            final_bbox.append([bbox,page_num])
-            i+=1
+            if bbox!=[]:
+                final_bbox.append([bbox,page_num])
+                #print(final_bbox)
+                i+=1
     return final_bbox
 
 
 def complete_tables_bbox(rectangles):
     final_rectangles=[]
     final_tables=[]
+    #print(rectangles)
     if not rectangles:
         return []
     for i in range(len(rectangles)):
@@ -83,6 +89,7 @@ def complete_tables_bbox(rectangles):
         current_rectangles=sorted(current_rectangles, key=lambda rect: (rect[1], rect[0]))
     # Grouping the rectangles
         grouped_rectangles = []
+        
         current_group = [current_rectangles[0]]
 
         for current in current_rectangles[1:]:
@@ -118,6 +125,7 @@ def draw_boxes_and_extract_text(pdf_path, highlight,save_image):
     doc = fitz.open(pdf_path)
     table_boundaries, lines_by_page = define_table_values(line_coordinates, table_coordinates)
     bboxes = separate_appropriate_lines_into_tables(table_boundaries, lines_by_page)
+    #(bboxes)
     refined_boxes = complete_tables_bbox(bboxes)
 
     # Ensure the output folder exists
