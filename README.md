@@ -1,5 +1,5 @@
 # Versão 1.0.1
-- Alguns conflitos com tabelas resolvidos, expressões regulares atualizadas e tabelas resolvidas ignoradas
+- Alguns conflitos com tabelas resolvidos, expressões regulares atualizadas e tabelas vazias ignoradas
 
 # Versão 1.0.0 
 
