@@ -83,7 +83,7 @@ def split_text_into_parts_by_word_count(text, words_per_part, overlap_percentage
 
     return parts
 
-# Print the parts to see the result
+
 def location_parser(resulting_parts,pdf_path):
     output=[]
     abstract=abstract_extractor(pdf_path)
@@ -153,9 +153,9 @@ def extract_research_locations_from_body(pdf_path):
     text, table_text = main_body_extractor(pdf_path)
     words_per_part=2500
     text= " ".join(text)
+    text=re.sub(r'- ',"",text) # Remove hypenated words in line breaks
     surrounding_text = find_text_surrounding_keywords(text, keywords)
     resulting_parts = split_text_into_parts_by_word_count(surrounding_text, words_per_part)
-
     start_time = time.time()
     locations = location_parser(resulting_parts,pdf_path)
     llm_time = time.time() - start_time
