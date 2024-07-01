@@ -154,12 +154,13 @@ def extract_research_locations_from_body(pdf_path):
     words_per_part=2500
     text= " ".join(text)
     text=re.sub(r'- ',"",text) # Remove hypenated words in line breaks
+    text=re.sub(r'\([^)]* \d\d\d\d.{0,5}\)',"",text) # Remove references
     surrounding_text = find_text_surrounding_keywords(text, keywords)
     resulting_parts = split_text_into_parts_by_word_count(surrounding_text, words_per_part)
+    
     start_time = time.time()
     locations = location_parser(resulting_parts,pdf_path)
     llm_time = time.time() - start_time
-
 
     resulting_unique_locations = process_location_tuples(locations)
 

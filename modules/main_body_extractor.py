@@ -37,6 +37,7 @@ def extract_text_excluding_tables_and_ignored_sections(document, tables_map, ign
         words = page.get_text("words")  # This includes bounding boxes
         if index == 0 and any("abstract" in word_info[4].lower() for word_info in words):
             process_from_page = True
+            continue
 
         if not process_from_page:
             continue
